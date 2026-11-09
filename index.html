@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simple Timer</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+    #display {
+      font-size: clamp(48px, 15vw, 120px);
+      font-variant-numeric: tabular-nums;
+    }
+    .buttons { display: flex; gap: 16px; }
+    button {
+      font-size: 20px;
+      padding: 12px 32px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #fff;
+    }
+    #toggle { background: #2e7d32; }
+    #toggle.running { background: #c62828; }
+    #reset { background: #616161; }
+  </style>
+</head>
+<body>
+  <div id="display">00:00.00</div>
+  <div class="buttons">
+    <button id="toggle">スタート</button>
+    <button id="reset">リセット</button>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+    const toggle = document.getElementById('toggle');
+    const reset = document.getElementById('reset');
+
+    let elapsed = 0;     // 止めるまでに経過した時間(ms)
+    let startedAt = null; // 動いている間の開始時刻
+    let timerId = null;
+
+    function format(ms) {
+      const m = Math.floor(ms / 60000);
+      const s = Math.floor(ms / 1000) % 60;
+      const cs = Math.floor(ms / 10) % 100;
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + String(cs).padStart(2, '0');
+    }
+
+    function render() {
+      const now = startedAt ? Date.now() - startedAt : 0;
+      display.textContent = format(elapsed + now);
+    }
+
+    toggle.addEventListener('click', () => {
+      if (timerId === null) {
+        startedAt = Date.now();
+        timerId = setInterval(render, 10);
+        toggle.textContent = 'ストップ';
+        toggle.classList.add('running');
+      } else {
+        clearInterval(timerId);
+        timerId = null;
+        elapsed += Date.now() - startedAt;
+        startedAt = null;
+        render();
+        toggle.textContent = 'スタート';
+        toggle.classList.remove('running');
+      }
+    });
+
+    reset.addEventListener('click', () => {
+      elapsed = 0;
+      if (startedAt) startedAt = Date.now();
+      render();
+    });
+  </script>
+</body>
+</html>
